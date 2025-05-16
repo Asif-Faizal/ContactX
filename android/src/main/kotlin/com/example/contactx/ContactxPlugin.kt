@@ -1,25 +1,34 @@
 package com.example.contactx
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
+import android.net.Uri
 import android.provider.ContactsContract
+import android.provider.Settings
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
 /** ContactxPlugin */
-class ContactxPlugin: FlutterPlugin, MethodCallHandler {
+class ContactxPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
   private lateinit var channel : MethodChannel
   private lateinit var context: Context
+  private var activity: Activity? = null
+  private var pendingResult: Result? = null
 
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     context = flutterPluginBinding.applicationContext
@@ -34,8 +43,14 @@ class ContactxPlugin: FlutterPlugin, MethodCallHandler {
       }
       "getContacts" -> {
         try {
-          val contacts = getDeviceContacts()
-          result.success(contacts)
+          val permission = Manifest.permission.READ_CONTACTS
+          if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
+            val contacts = getDeviceContacts()
+            result.success(contacts)
+          } else {
+            pendingResult = result
+            ActivityCompat.requestPermissions(activity!!, arrayOf(permission), 1)
+          }
         } catch (e: Exception) {
           result.error("CONTACTS_ERROR", "Failed to get contacts: ${e.message}", null)
         }
@@ -47,6 +62,22 @@ class ContactxPlugin: FlutterPlugin, MethodCallHandler {
       else -> {
         result.notImplemented()
       }
+    }
+  }
+
+  fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    if (requestCode == 1) {
+      if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        try {
+          val contacts = getDeviceContacts()
+          pendingResult?.success(contacts)
+        } catch (e: Exception) {
+          pendingResult?.error("CONTACTS_ERROR", "Failed to get contacts: ${e.message}", null)
+        }
+      } else {
+        pendingResult?.error("CONTACTS_ERROR", "Permission to read contacts was denied", null)
+      }
+      pendingResult = null
     }
   }
   
@@ -67,13 +98,6 @@ class ContactxPlugin: FlutterPlugin, MethodCallHandler {
 
   private fun getDeviceContacts(): List<Map<String, String>> {
     val contacts = mutableListOf<Map<String, String>>()
-    
-    val permission = Manifest.permission.READ_CONTACTS
-    val granted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
-    
-    if (!granted) {
-      throw SecurityException("Permission to read contacts was denied")
-    }
     
     val projection = arrayOf(
       ContactsContract.Contacts._ID,
@@ -129,5 +153,29 @@ class ContactxPlugin: FlutterPlugin, MethodCallHandler {
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
+  }
+
+  override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+    activity = binding.activity
+    binding.addRequestPermissionsResultListener { requestCode, permissions, grantResults ->
+      onRequestPermissionsResult(requestCode, permissions, grantResults)
+      true
+    }
+  }
+
+  override fun onDetachedFromActivityForConfigChanges() {
+    activity = null
+  }
+
+  override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+    activity = binding.activity
+    binding.addRequestPermissionsResultListener { requestCode, permissions, grantResults ->
+      onRequestPermissionsResult(requestCode, permissions, grantResults)
+      true
+    }
+  }
+
+  override fun onDetachedFromActivity() {
+    activity = null
   }
 }

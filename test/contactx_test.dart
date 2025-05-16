@@ -9,15 +9,13 @@ class MockContactxPlatform
     implements ContactxPlatform {
 
   @override
-  Future<List<Map<String, String>>> getContacts() {
-    // TODO: implement getContacts
-    throw UnimplementedError();
+  Future<List<Map<String, String>>> getContacts() async {
+    return [{'name': 'Mock Contact', 'number': '9876543210'}];
   }
   
   @override
-  Future<String> checkContactPermission() {
-    // TODO: implement checkContactPermission
-    throw UnimplementedError();
+  Future<String> checkContactPermission() async {
+    return 'authorized';
   }
 }
 
@@ -28,4 +26,20 @@ void main() {
     expect(initialPlatform, isInstanceOf<MethodChannelContactx>());
   });
 
+  test('getContacts returns a list of contacts', () async {
+    final mockPlatform = MockContactxPlatform();
+    ContactxPlatform.instance = mockPlatform;
+    final contacts = await Contactx().getContacts();
+    expect(contacts, isA<List<Map<String, String>>>());
+    expect(contacts.length, 1);
+    expect(contacts[0]['name'], 'Mock Contact');
+    expect(contacts[0]['number'], '9876543210');
+  });
+
+  test('checkContactPermission returns permission status', () async {
+    final mockPlatform = MockContactxPlatform();
+    ContactxPlatform.instance = mockPlatform;
+    final status = await Contactx().checkContactPermission();
+    expect(status, 'authorized');
+  });
 }

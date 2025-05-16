@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:io' show Platform;
 import 'package:contactx/contactx.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(const MyApp());
@@ -54,42 +52,41 @@ class _HomePageState extends State<HomePage> {
       _isLoading = true;
     });
 
-    bool hasPermission = false;
-    final status = await _contactx.checkContactPermission();
-    setState(() {
-      _permissionStatus = status;
-    });
-
-    if (status == 'authorized') {
-      hasPermission = true;
-    } else if (Platform.isIOS && status == 'notDetermined') {
-      // On iOS, trigger permission dialog by calling getContacts
-      await _contactx.getContacts();
-      final newStatus = await _contactx.checkContactPermission();
+    try {
+      final status = await _contactx.checkContactPermission();
       setState(() {
-        _permissionStatus = newStatus;
+        _permissionStatus = status;
       });
-      hasPermission = newStatus == 'authorized';
-    } else if (Platform.isAndroid) {
-      // On Android, request permission if not granted
-      final permissionStatus = await Permission.contacts.request();
-      setState(() {
-        _permissionStatus = permissionStatus.toString();
-      });
-      hasPermission = permissionStatus.isGranted;
-    }
 
-    if (hasPermission) {
-      try {
+      if (status == 'authorized') {
         final contacts = await _contactx.getContacts();
         setState(() {
           _contacts = contacts;
         });
-      } catch (e) {
-        _showSnackBar('Failed to load contacts: $e');
+      } else {
+        // Request permission by calling getContacts
+        try {
+          final contacts = await _contactx.getContacts();
+          final newStatus = await _contactx.checkContactPermission();
+          setState(() {
+            _permissionStatus = newStatus;
+          });
+          
+          if (newStatus == 'authorized') {
+            setState(() {
+              _contacts = contacts;
+            });
+          } else {
+            _showSettingsAlert();
+          }
+        } catch (e) {
+          debugPrint('Failed to load contacts: $e');
+          _showSettingsAlert();
+        }
       }
-    } else {
-      _showSettingsAlert();
+    } catch (e) {
+      debugPrint('Failed to load contacts: $e');
+      _showSnackBar('Failed to load contacts: $e');
     }
 
     setState(() {
@@ -120,9 +117,8 @@ class _HomePageState extends State<HomePage> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop();
-              openAppSettings();
             },
             child: const Text('Open Settings'),
           ),

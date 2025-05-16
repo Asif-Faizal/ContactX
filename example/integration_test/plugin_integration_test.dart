@@ -15,7 +15,15 @@ import 'package:contactx/contactx.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('getPlatformVersion test', (WidgetTester tester) async {
+  testWidgets('getContacts test', (WidgetTester tester) async {
     final Contactx plugin = Contactx();
+    final contacts = await plugin.getContacts();
+    expect(contacts, isA<List<Map<String, String>>>());
+  });
+
+  testWidgets('checkContactPermission test', (WidgetTester tester) async {
+    final Contactx plugin = Contactx();
+    final status = await plugin.checkContactPermission();
+    expect(status, isA<String>());
   });
 }
