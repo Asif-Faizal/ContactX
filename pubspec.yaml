@@ -1,6 +1,6 @@
 name: contactx
 description: "ContactX is a powerful and fast Flutter plugin designed to fetch contacts directly from the device."
-version: 0.0.6
+version: 0.0.7
 homepage: https://github.com/Asif-Faizal/ContactX
 
 environment:
