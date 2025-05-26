@@ -10,10 +10,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Contactx Example',
-      home: HomePage(),
-    );
+    return const MaterialApp(title: 'Contactx Example', home: HomePage());
   }
 }
 
@@ -71,7 +68,7 @@ class _HomePageState extends State<HomePage> {
           setState(() {
             _permissionStatus = newStatus;
           });
-          
+
           if (newStatus == 'authorized') {
             setState(() {
               _contacts = contacts;
@@ -97,9 +94,9 @@ class _HomePageState extends State<HomePage> {
   /// Shows a snackbar with a message
   void _showSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -107,32 +104,32 @@ class _HomePageState extends State<HomePage> {
   void _showSettingsAlert() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Contacts Permission Required'),
-        content: const Text(
-          'This app needs access to your contacts. Please grant permission in Settings.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Contacts Permission Required'),
+            content: const Text(
+              'This app needs access to your contacts. Please grant permission in Settings.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Open Settings'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Open Settings'),
-          ),
-        ],
-      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Contacts Example'),
-      ),
+      appBar: AppBar(title: const Text('Contacts Example')),
       body: Column(
         children: [
           Padding(
@@ -145,32 +142,36 @@ class _HomePageState extends State<HomePage> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _loadContacts,
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Load Contacts'),
+                child:
+                    _isLoading
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : const Text('Load Contacts'),
               ),
             ),
           ),
           const Divider(),
           Expanded(
-            child: _contacts.isEmpty
-                ? const Center(child: Text('No contacts to display'))
-                : ListView.separated(
-                    itemCount: _contacts.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final contact = _contacts[index];
-                      return ListTile(
-                        leading: const CircleAvatar(child: Icon(Icons.person)),
-                        title: Text(contact['name'] ?? ''),
-                        subtitle: Text(contact['number'] ?? ''),
-                      );
-                    },
-                  ),
+            child:
+                _contacts.isEmpty
+                    ? const Center(child: Text('No contacts to display'))
+                    : ListView.separated(
+                      itemCount: _contacts.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final contact = _contacts[index];
+                        return ListTile(
+                          leading: const CircleAvatar(
+                            child: Icon(Icons.person),
+                          ),
+                          title: Text(contact['name'] ?? ''),
+                          subtitle: Text(contact['number'] ?? ''),
+                        );
+                      },
+                    ),
           ),
         ],
       ),

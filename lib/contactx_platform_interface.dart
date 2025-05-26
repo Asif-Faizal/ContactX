@@ -27,9 +27,11 @@ abstract class ContactxPlatform extends PlatformInterface {
   Future<List<Map<String, String>>> getContacts() {
     throw UnimplementedError('getContacts() has not been implemented.');
   }
-  
+
   /// Check contact permission status (particularly useful for iOS)
   Future<String> checkContactPermission() {
-    throw UnimplementedError('checkContactPermission() has not been implemented.');
+    throw UnimplementedError(
+      'checkContactPermission() has not been implemented.',
+    );
   }
 }

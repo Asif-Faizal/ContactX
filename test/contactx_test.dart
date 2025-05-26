@@ -7,12 +7,13 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 class MockContactxPlatform
     with MockPlatformInterfaceMixin
     implements ContactxPlatform {
-
   @override
   Future<List<Map<String, String>>> getContacts() async {
-    return [{'name': 'Mock Contact', 'number': '9876543210'}];
+    return [
+      {'name': 'Mock Contact', 'number': '9876543210'},
+    ];
   }
-  
+
   @override
   Future<String> checkContactPermission() async {
     return 'authorized';

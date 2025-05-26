@@ -24,6 +24,6 @@
 
 * Changes in permission logic
 
-## 0.0.7
+## 0.0.8
 
 * Added README

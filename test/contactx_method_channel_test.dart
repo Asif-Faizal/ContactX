@@ -9,23 +9,24 @@ void main() {
   const MethodChannel channel = MethodChannel('contactx');
 
   setUp(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-      channel,
-      (MethodCall methodCall) async {
-        switch (methodCall.method) {
-          case 'getContacts':
-            return [{'name': 'Test Contact', 'number': '1234567890'}];
-          case 'checkPermission':
-            return 'authorized';
-          default:
-            return '';
-        }
-      },
-    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          switch (methodCall.method) {
+            case 'getContacts':
+              return [
+                {'name': 'Test Contact', 'number': '1234567890'},
+              ];
+            case 'checkPermission':
+              return 'authorized';
+            default:
+              return '';
+          }
+        });
   });
 
   tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
   });
 
   test('getContacts returns a list of contacts', () async {
